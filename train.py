@@ -46,19 +46,26 @@ def main():
                           optimizer_state=optimizer.state_dict())
 
     has_bn = utils.check_bn(model)
-    test_res = {"loss": None, "accuracy": None, "nll": None}
+    # test_res = {"loss": None, "accuracy": None, "nll": None}
+    print("Training")
     for epoch in range(start_epoch, args.epochs + 1):
         lr = learning_rate_schedule(args.lr, epoch, args.epochs)
         utils.adjust_learning_rate(optimizer, lr)
-        train_epoch(model=model,
-                    loaders=loaders,
-                    lr=lr,
-                    optimizer=optimizer,
-                    criterion=criterion,
-                    regularizer=regularizer,
-                    args=args,
-                    has_bn=has_bn)
+        train_res, test_res, epoch_duration = train_epoch(
+            model=model,
+            loaders=loaders,
+            optimizer=optimizer,
+            criterion=criterion,
+            regularizer=regularizer,
+            args=args,
+            has_bn=has_bn)
         save_model(epoch, args.save_freq, args.dir, model, optimizer)
+        print_epoch(train_res,
+                    test_res,
+                    lr=lr,
+                    epoch=epoch,
+                    start_epoch=start_epoch,
+                    epoch_duration=epoch_duration)
 
     if args.epochs % args.save_freq != 0:
         utils.save_checkpoint(args.dir,
@@ -67,7 +74,7 @@ def main():
                               optimizer_state=optimizer.state_dict())
 
 
-def train_epoch(model, loaders, optimizer, lr, criterion, regularizer, args,
+def train_epoch(model, loaders, optimizer, criterion, regularizer, args,
                 has_bn):
     """Train epoch
     TODO: Split in train/test
@@ -83,7 +90,7 @@ def train_epoch(model, loaders, optimizer, lr, criterion, regularizer, args,
     return train_res, test_res, time_ep
 
 
-def print_epoch(train_res, test_res, lr, epoch_duration):
+def print_epoch(train_res, test_res, lr, epoch, start_epoch, epoch_duration):
     columns = ["ep", "lr", "tr_loss", "tr_acc", "te_nll", "te_acc", "time"]
 
     values = [
