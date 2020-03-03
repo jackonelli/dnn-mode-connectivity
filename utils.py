@@ -10,8 +10,9 @@ def l2_regularizer(weight_decay):
     def regularizer(model):
         l2 = 0.0
         for p in model.parameters():
-            l2 += torch.sqrt(torch.sum(p ** 2))
+            l2 += torch.sqrt(torch.sum(p**2))
         return 0.5 * weight_decay * l2
+
     return regularizer
 
 
@@ -22,6 +23,7 @@ def cyclic_learning_rate(epoch, cycle, alpha_1, alpha_2):
             return alpha_1 * (1.0 - 2.0 * t) + alpha_2 * 2.0 * t
         else:
             return alpha_1 * (2.0 * t - 1.0) + alpha_2 * (2.0 - 2.0 * t)
+
     return schedule
 
 
@@ -40,7 +42,12 @@ def save_checkpoint(dir, epoch, name='checkpoint', **kwargs):
     torch.save(state, filepath)
 
 
-def train(train_loader, model, optimizer, criterion, regularizer=None, lr_schedule=None):
+def train(train_loader,
+          model,
+          optimizer,
+          criterion,
+          regularizer=None,
+          lr_schedule=None):
     loss_sum = 0.0
     correct = 0.0
 
@@ -79,18 +86,18 @@ def test(test_loader, model, criterion, regularizer=None, **kwargs):
 
     model.eval()
 
-    for input, target in test_loader:
-        input = input.cuda(async=True)
+    for input_, target in test_loader:
+        input_ = input_.cuda(async=True)
         target = target.cuda(async=True)
 
-        output = model(input, **kwargs)
+        output = model(input_, **kwargs)
         nll = criterion(output, target)
         loss = nll.clone()
         if regularizer is not None:
             loss += regularizer(model)
 
-        nll_sum += nll.item() * input.size(0)
-        loss_sum += loss.item() * input.size(0)
+        nll_sum += nll.item() * input_.size(0)
+        loss_sum += loss.item() * input_.size(0)
         pred = output.data.argmax(1, keepdim=True)
         correct += pred.eq(target.data.view_as(pred)).sum().item()
 
@@ -99,7 +106,6 @@ def test(test_loader, model, criterion, regularizer=None, **kwargs):
         'loss': loss_sum / len(test_loader.dataset),
         'accuracy': correct * 100.0 / len(test_loader.dataset),
     }
-
 
 
 def predictions(test_loader, model, **kwargs):
