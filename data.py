@@ -1,3 +1,4 @@
+"""Data"""
 import os
 import torch
 import torchvision
@@ -54,7 +55,7 @@ def loaders(dataset,
     train_set = ds(path, train=True, download=True, transform=transform.train)
 
     if use_test:
-        print('You are going to run models on the test set. Are you sure?')
+        print("You are going to run models on the test set. Are you sure?")
         test_set = ds(path,
                       train=False,
                       download=True,
@@ -74,13 +75,13 @@ def loaders(dataset,
         test_set.targets = test_set.targets[-5000:]
 
     return {
-        'train':
+        "train":
         torch.utils.data.DataLoader(train_set,
                                     batch_size=batch_size,
                                     shuffle=shuffle_train,
                                     num_workers=num_workers,
                                     pin_memory=True),
-        'test':
+        "test":
         torch.utils.data.DataLoader(test_set,
                                     batch_size=batch_size,
                                     shuffle=False,

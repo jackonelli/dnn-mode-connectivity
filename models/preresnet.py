@@ -8,17 +8,26 @@ import torch.nn as nn
 
 import curves
 
-__all__ = ['PreResNet110', 'PreResNet164']
+__all__ = ["PreResNet110", "PreResNet164"]
 
 
 def conv3x3(in_planes, out_planes, stride=1):
-    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
-                     padding=1, bias=False)
+    return nn.Conv2d(in_planes,
+                     out_planes,
+                     kernel_size=3,
+                     stride=stride,
+                     padding=1,
+                     bias=False)
 
 
 def conv3x3curve(in_planes, out_planes, fix_points, stride=1):
-    return curves.Conv2d(in_planes, out_planes, kernel_size=3, fix_points=fix_points, stride=stride,
-                         padding=1, bias=False)
+    return curves.Conv2d(in_planes,
+                         out_planes,
+                         kernel_size=3,
+                         fix_points=fix_points,
+                         stride=stride,
+                         padding=1,
+                         bias=False)
 
 
 class BasicBlock(nn.Module):
@@ -56,11 +65,19 @@ class BasicBlock(nn.Module):
 class BasicBlockCurve(nn.Module):
     expansion = 1
 
-    def __init__(self, inplanes, planes, fix_points, stride=1, downsample=None):
+    def __init__(self,
+                 inplanes,
+                 planes,
+                 fix_points,
+                 stride=1,
+                 downsample=None):
         super(BasicBlockCurve, self).__init__()
         self.bn1 = curves.BatchNorm2d(inplanes, fix_points=fix_points)
         self.relu = nn.ReLU(inplace=True)
-        self.conv1 = conv3x3curve(inplanes, planes, stride=stride, fix_points=fix_points)
+        self.conv1 = conv3x3curve(inplanes,
+                                  planes,
+                                  stride=stride,
+                                  fix_points=fix_points)
         self.bn2 = curves.BatchNorm2d(planes, fix_points=fix_points)
         self.conv2 = conv3x3curve(planes, planes, fix_points=fix_points)
         self.downsample = downsample
@@ -93,8 +110,12 @@ class Bottleneck(nn.Module):
         self.bn1 = nn.BatchNorm2d(inplanes)
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
-                               padding=1, bias=False)
+        self.conv2 = nn.Conv2d(planes,
+                               planes,
+                               kernel_size=3,
+                               stride=stride,
+                               padding=1,
+                               bias=False)
         self.bn3 = nn.BatchNorm2d(planes)
         self.conv3 = nn.Conv2d(planes, planes * 4, kernel_size=1, bias=False)
         self.relu = nn.ReLU(inplace=True)
@@ -127,16 +148,32 @@ class Bottleneck(nn.Module):
 class BottleneckCurve(nn.Module):
     expansion = 4
 
-    def __init__(self, inplanes, planes, fix_points, stride=1, downsample=None):
+    def __init__(self,
+                 inplanes,
+                 planes,
+                 fix_points,
+                 stride=1,
+                 downsample=None):
         super(BottleneckCurve, self).__init__()
         self.bn1 = curves.BatchNorm2d(inplanes, fix_points=fix_points)
-        self.conv1 = curves.Conv2d(inplanes, planes, kernel_size=1, bias=False,
+        self.conv1 = curves.Conv2d(inplanes,
+                                   planes,
+                                   kernel_size=1,
+                                   bias=False,
                                    fix_points=fix_points)
         self.bn2 = curves.BatchNorm2d(planes, fix_points=fix_points)
-        self.conv2 = curves.Conv2d(planes, planes, kernel_size=3, stride=stride,
-                                   padding=1, bias=False, fix_points=fix_points)
+        self.conv2 = curves.Conv2d(planes,
+                                   planes,
+                                   kernel_size=3,
+                                   stride=stride,
+                                   padding=1,
+                                   bias=False,
+                                   fix_points=fix_points)
         self.bn3 = curves.BatchNorm2d(planes, fix_points=fix_points)
-        self.conv3 = curves.Conv2d(planes, planes * 4, kernel_size=1, bias=False,
+        self.conv3 = curves.Conv2d(planes,
+                                   planes * 4,
+                                   kernel_size=1,
+                                   bias=False,
                                    fix_points=fix_points)
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
@@ -166,21 +203,19 @@ class BottleneckCurve(nn.Module):
 
 
 class PreResNetBase(nn.Module):
-
     def __init__(self, num_classes, depth=110):
         super(PreResNetBase, self).__init__()
         if depth >= 44:
-            assert (depth - 2) % 9 == 0, 'depth should be 9n+2'
+            assert (depth - 2) % 9 == 0, "depth should be 9n+2"
             n = (depth - 2) // 9
             block = Bottleneck
         else:
-            assert (depth - 2) % 6 == 0, 'depth should be 6n+2'
+            assert (depth - 2) % 6 == 0, "depth should be 6n+2"
             n = (depth - 2) // 6
             block = BasicBlock
 
         self.inplanes = 16
-        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, padding=1,
-                               bias=False)
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, padding=1, bias=False)
         self.layer1 = self._make_layer(block, 16, n)
         self.layer2 = self._make_layer(block, 32, n, stride=2)
         self.layer3 = self._make_layer(block, 64, n, stride=2)
@@ -201,9 +236,11 @@ class PreResNetBase(nn.Module):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
-                nn.Conv2d(self.inplanes, planes * block.expansion,
-                          kernel_size=1, stride=stride, bias=False),
-            )
+                nn.Conv2d(self.inplanes,
+                          planes * block.expansion,
+                          kernel_size=1,
+                          stride=stride,
+                          bias=False), )
 
         layers = list()
         layers.append(block(self.inplanes, planes, stride, downsample))
@@ -230,48 +267,71 @@ class PreResNetBase(nn.Module):
 
 
 class PreResNetCurve(nn.Module):
-
     def __init__(self, num_classes, fix_points, depth=110):
         super(PreResNetCurve, self).__init__()
         if depth >= 44:
-            assert (depth - 2) % 9 == 0, 'depth should be 9n+2'
+            assert (depth - 2) % 9 == 0, "depth should be 9n+2"
             n = (depth - 2) // 9
             block = BottleneckCurve
         else:
-            assert (depth - 2) % 6 == 0, 'depth should be 6n+2'
+            assert (depth - 2) % 6 == 0, "depth should be 6n+2"
             n = (depth - 2) // 6
             block = BasicBlockCurve
 
         self.inplanes = 16
-        self.conv1 = curves.Conv2d(3, 16, kernel_size=3, padding=1,
-                                   bias=False, fix_points=fix_points)
+        self.conv1 = curves.Conv2d(3,
+                                   16,
+                                   kernel_size=3,
+                                   padding=1,
+                                   bias=False,
+                                   fix_points=fix_points)
         self.layer1 = self._make_layer(block, 16, n, fix_points=fix_points)
-        self.layer2 = self._make_layer(block, 32, n, stride=2, fix_points=fix_points)
-        self.layer3 = self._make_layer(block, 64, n, stride=2, fix_points=fix_points)
-        self.bn = curves.BatchNorm2d(64 * block.expansion, fix_points=fix_points)
+        self.layer2 = self._make_layer(block,
+                                       32,
+                                       n,
+                                       stride=2,
+                                       fix_points=fix_points)
+        self.layer3 = self._make_layer(block,
+                                       64,
+                                       n,
+                                       stride=2,
+                                       fix_points=fix_points)
+        self.bn = curves.BatchNorm2d(64 * block.expansion,
+                                     fix_points=fix_points)
         self.relu = nn.ReLU(inplace=True)
         self.avgpool = nn.AvgPool2d(8)
-        self.fc = curves.Linear(64 * block.expansion, num_classes, fix_points=fix_points)
+        self.fc = curves.Linear(64 * block.expansion,
+                                num_classes,
+                                fix_points=fix_points)
 
         for m in self.modules():
             if isinstance(m, curves.Conv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
                 for i in range(m.num_bends):
-                    getattr(m, 'weight_%d' % i).data.normal_(0, math.sqrt(2. / n))
+                    getattr(m, "weight_%d" % i).data.normal_(
+                        0, math.sqrt(2. / n))
             elif isinstance(m, curves.BatchNorm2d):
                 for i in range(m.num_bends):
-                    getattr(m, 'weight_%d' % i).data.fill_(1)
-                    getattr(m, 'bias_%d' % i).data.zero_()
+                    getattr(m, "weight_%d" % i).data.fill_(1)
+                    getattr(m, "bias_%d" % i).data.zero_()
 
     def _make_layer(self, block, planes, blocks, fix_points, stride=1):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
-            downsample = curves.Conv2d(self.inplanes, planes * block.expansion, kernel_size=1,
-                                       stride=stride, bias=False, fix_points=fix_points)
+            downsample = curves.Conv2d(self.inplanes,
+                                       planes * block.expansion,
+                                       kernel_size=1,
+                                       stride=stride,
+                                       bias=False,
+                                       fix_points=fix_points)
 
         layers = list()
-        layers.append(block(self.inplanes, planes, fix_points=fix_points, stride=stride,
-                            downsample=downsample))
+        layers.append(
+            block(self.inplanes,
+                  planes,
+                  fix_points=fix_points,
+                  stride=stride,
+                  downsample=downsample))
         self.inplanes = planes * block.expansion
         for i in range(1, blocks):
             layers.append(block(self.inplanes, planes, fix_points=fix_points))
@@ -300,10 +360,10 @@ class PreResNetCurve(nn.Module):
 class PreResNet110:
     base = PreResNetBase
     curve = PreResNetCurve
-    kwargs = {'depth': 110}
+    kwargs = {"depth": 110}
 
 
 class PreResNet164:
     base = PreResNetBase
     curve = PreResNetCurve
-    kwargs = {'depth': 164}
+    kwargs = {"depth": 164}

@@ -8,11 +8,13 @@ import torch.nn as nn
 
 import curves
 
-__all__ = ['VGG16', 'VGG16BN', 'VGG19', 'VGG19BN']
+__all__ = ["VGG16", "VGG16BN", "VGG19", "VGG19BN"]
 
 config = {
-    16: [[64, 64], [128, 128], [256, 256, 256], [512, 512, 512], [512, 512, 512]],
-    19: [[64, 64], [128, 128], [256, 256, 256, 256], [512, 512, 512, 512], [512, 512, 512, 512]],
+    16: [[64, 64], [128, 128], [256, 256, 256], [512, 512, 512],
+         [512, 512, 512]],
+    19: [[64, 64], [128, 128], [256, 256, 256, 256], [512, 512, 512, 512],
+         [512, 512, 512, 512]],
 }
 
 
@@ -25,7 +27,7 @@ def make_layers(config, batch_norm=False, fix_points=None):
     conv = nn.Conv2d
     bn = nn.BatchNorm2d
     if fix_points is not None:
-        kwargs['fix_points'] = fix_points
+        kwargs["fix_points"] = fix_points
         conv = curves.Conv2d
         bn = curves.BatchNorm2d
 
@@ -34,7 +36,9 @@ def make_layers(config, batch_norm=False, fix_points=None):
         layer_blocks.append(nn.ModuleList())
         activation_blocks.append(nn.ModuleList())
         for channels in sizes:
-            layer_blocks[-1].append(conv(in_channels, channels, kernel_size=3, padding=1, **kwargs))
+            layer_blocks[-1].append(
+                conv(in_channels, channels, kernel_size=3, padding=1,
+                     **kwargs))
             if batch_norm:
                 layer_blocks[-1].append(bn(channels, **kwargs))
             activation_blocks[-1].append(nn.ReLU(inplace=True))
@@ -46,7 +50,8 @@ def make_layers(config, batch_norm=False, fix_points=None):
 class VGGBase(nn.Module):
     def __init__(self, num_classes, depth=16, batch_norm=False):
         super(VGGBase, self).__init__()
-        layer_blocks, activation_blocks, poolings = make_layers(config[depth], batch_norm)
+        layer_blocks, activation_blocks, poolings = make_layers(
+            config[depth], batch_norm)
         self.layer_blocks = layer_blocks
         self.activation_blocks = activation_blocks
         self.poolings = poolings
@@ -68,7 +73,8 @@ class VGGBase(nn.Module):
                 m.bias.data.zero_()
 
     def forward(self, x):
-        for layers, activations, pooling in zip(self.layer_blocks, self.activation_blocks,
+        for layers, activations, pooling in zip(self.layer_blocks,
+                                                self.activation_blocks,
                                                 self.poolings):
             for layer, activation in zip(layers, activations):
                 x = layer(x)
@@ -82,9 +88,8 @@ class VGGBase(nn.Module):
 class VGGCurve(nn.Module):
     def __init__(self, num_classes, fix_points, depth=16, batch_norm=False):
         super(VGGCurve, self).__init__()
-        layer_blocks, activation_blocks, poolings = make_layers(config[depth],
-                                                                batch_norm,
-                                                                fix_points=fix_points)
+        layer_blocks, activation_blocks, poolings = make_layers(
+            config[depth], batch_norm, fix_points=fix_points)
         self.layer_blocks = layer_blocks
         self.activation_blocks = activation_blocks
         self.poolings = poolings
@@ -102,11 +107,13 @@ class VGGCurve(nn.Module):
             if isinstance(m, curves.Conv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
                 for i in range(m.num_bends):
-                    getattr(m, 'weight_%d' % i).data.normal_(0, math.sqrt(2. / n))
-                    getattr(m, 'bias_%d' % i).data.zero_()
+                    getattr(m, "weight_%d" % i).data.normal_(
+                        0, math.sqrt(2. / n))
+                    getattr(m, "bias_%d" % i).data.zero_()
 
     def forward(self, x, coeffs_t):
-        for layers, activations, pooling in zip(self.layer_blocks, self.activation_blocks,
+        for layers, activations, pooling in zip(self.layer_blocks,
+                                                self.activation_blocks,
                                                 self.poolings):
             for layer, activation in zip(layers, activations):
                 x = layer(x, coeffs_t)
@@ -130,34 +137,22 @@ class VGGCurve(nn.Module):
 class VGG16:
     base = VGGBase
     curve = VGGCurve
-    kwargs = {
-        'depth': 16,
-        'batch_norm': False
-    }
+    kwargs = {"depth": 16, "batch_norm": False}
 
 
 class VGG16BN:
     base = VGGBase
     curve = VGGCurve
-    kwargs = {
-        'depth': 16,
-        'batch_norm': True
-    }
+    kwargs = {"depth": 16, "batch_norm": True}
 
 
 class VGG19:
     base = VGGBase
     curve = VGGCurve
-    kwargs = {
-        'depth': 19,
-        'batch_norm': False
-    }
+    kwargs = {"depth": 19, "batch_norm": False}
 
 
 class VGG19BN:
     base = VGGBase
     curve = VGGCurve
-    kwargs = {
-        'depth': 19,
-        'batch_norm': True
-    }
+    kwargs = {"depth": 19, "batch_norm": True}

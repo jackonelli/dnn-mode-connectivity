@@ -1,8 +1,9 @@
+"""Training script"""
+import time
 import argparse
 import os
 import sys
 import tabulate
-import time
 import torch
 import torch.nn.functional as F
 
@@ -91,6 +92,7 @@ def train_epoch(model, loaders, optimizer, criterion, regularizer, args,
 
 
 def print_epoch(train_res, test_res, lr, epoch, start_epoch, epoch_duration):
+    """Print epoch stats"""
     columns = ["ep", "lr", "tr_loss", "tr_acc", "te_nll", "te_acc", "time"]
 
     values = [
