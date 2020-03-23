@@ -16,6 +16,7 @@ import utils
 def main():
     """Main entry point"""
     args = parse_args()
+    utils.torch_settings(seed=args.seed, benchmark=True)
     os.makedirs(args.dir, exist_ok=True)
     store_command(args)
     loaders, num_classes = data.loaders(args.dataset, args.data_path,
@@ -168,13 +169,6 @@ def init_model(args, num_classes):
                 model.init_linear()
     model.cuda()
     return model
-
-
-def torch_settings(args):
-    """Torch settings"""
-    torch.backends.cudnn.benchmark = True
-    torch.manual_seed(args.seed)
-    torch.cuda.manual_seed(args.seed)
 
 
 def store_command(args):
