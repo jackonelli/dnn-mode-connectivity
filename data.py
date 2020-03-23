@@ -49,6 +49,7 @@ def loaders(dataset,
             transform_name,
             use_test=False,
             shuffle_train=True):
+    """Generate dataloaders"""
     ds = getattr(torchvision.datasets, dataset)
     path = os.path.join(path, dataset.lower())
     transform = getattr(getattr(Transforms, dataset), transform_name)
@@ -66,11 +67,9 @@ def loaders(dataset,
         train_set.targets = train_set.targets[:-5000]
 
         test_set = ds(path,
-                      train=True,
+                      train=False,
                       download=True,
                       transform=transform.test)
-        # TODO: Line redundant if init is changed
-        test_set.train = False
         test_set.data = test_set.data[-5000:]
         test_set.targets = test_set.targets[-5000:]
 
