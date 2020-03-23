@@ -7,6 +7,14 @@ import torch.nn.functional as F
 import curves
 
 
+def torch_settings(seed, benchmark):
+    """Torch settings"""
+    torch.backends.cudnn.benchmark = benchmark
+    if seed is not None:
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+
+
 def l2_regularizer(weight_decay):
     def regularizer(model):
         l2 = 0.0
